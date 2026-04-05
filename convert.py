@@ -51,31 +51,85 @@ def generate_qx(http_proxies: list[str], socks5_proxies: list[str]) -> str:
 
 
 def generate_clash(http_proxies: list[str], socks5_proxies: list[str]) -> str:
-    """Generate Clash proxy config in YAML format."""
+    """Generate full Clash Meta (Mihomo) config in YAML format."""
     now = datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%d %H:%M UTC")
-    lines = [
-        f"# Free Proxy List for Clash",
-        f"# Updated: {now}",
-        f"# HTTP: {len(http_proxies)} | SOCKS5: {len(socks5_proxies)}",
-        "",
-        "proxies:",
-    ]
+
+    # Collect all proxy names for proxy groups
+    proxy_names: list[str] = []
+    proxy_blocks: list[str] = []
 
     for i, proxy in enumerate(http_proxies, 1):
         ip, port = proxy.rsplit(":", 1)
-        lines.append(f'  - name: "HTTP-{i}"')
-        lines.append(f"    type: http")
-        lines.append(f"    server: {ip}")
-        lines.append(f"    port: {port}")
+        name = f"HTTP-{i}"
+        proxy_names.append(name)
+        proxy_blocks.append(
+            f'  - name: "{name}"\n'
+            f"    type: http\n"
+            f"    server: {ip}\n"
+            f"    port: {port}"
+        )
 
     for i, proxy in enumerate(socks5_proxies, 1):
         ip, port = proxy.rsplit(":", 1)
-        lines.append(f'  - name: "SOCKS5-{i}"')
-        lines.append(f"    type: socks5")
-        lines.append(f"    server: {ip}")
-        lines.append(f"    port: {port}")
+        name = f"SOCKS5-{i}"
+        proxy_names.append(name)
+        proxy_blocks.append(
+            f'  - name: "{name}"\n'
+            f"    type: socks5\n"
+            f"    server: {ip}\n"
+            f"    port: {port}"
+        )
 
-    return "\n".join(lines) + "\n"
+    # Build proxy name list for groups
+    names_yaml = "\n".join(f'      - "{n}"' for n in proxy_names)
+
+    header = f"""\
+# Clash Meta (Mihomo) Config - Free Proxy List
+# Updated: {now}
+# HTTP: {len(http_proxies)} | SOCKS5: {len(socks5_proxies)}
+
+mixed-port: 7890
+allow-lan: false
+mode: rule
+log-level: info
+
+dns:
+  enable: true
+  enhanced-mode: fake-ip
+  nameserver:
+    - 223.5.5.5
+    - 119.29.29.29
+
+"""
+
+    proxies_section = "proxies:\n" + "\n".join(proxy_blocks) + "\n"
+
+    groups_section = f"""\
+proxy-groups:
+  - name: "Proxy"
+    type: select
+    proxies:
+      - "Auto"
+      - "DIRECT"
+{names_yaml}
+
+  - name: "Auto"
+    type: url-test
+    url: http://www.gstatic.com/generate_204
+    interval: 300
+    tolerance: 100
+    proxies:
+{names_yaml}
+
+"""
+
+    rules_section = """\
+rules:
+  - GEOIP,CN,DIRECT
+  - MATCH,Proxy
+"""
+
+    return header + proxies_section + "\n" + groups_section + rules_section
 
 
 def main():
