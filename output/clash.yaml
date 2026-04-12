@@ -1,5 +1,5 @@
 # Clash Meta (Mihomo) Config - Free Proxy List
-# Updated: 2026-04-12 02:11 UTC
+# Updated: 2026-04-12 05:11 UTC
 # Validated: 50 nodes (sorted by latency)
 
 mixed-port: 7890
@@ -17,204 +17,204 @@ dns:
 proxies:
   - name: "HTTP-1"
     type: http
-    server: 138.197.68.35
-    port: 4857
+    server: 162.240.154.26
+    port: 3128
   - name: "HTTP-2"
     type: http
     server: 45.167.125.21
     port: 999
   - name: "HTTP-3"
     type: http
-    server: 159.223.225.118
-    port: 8888
-  - name: "HTTP-4"
-    type: http
     server: 147.161.239.240
     port: 8800
+  - name: "SOCKS5-4"
+    type: socks5
+    server: 43.153.45.254
+    port: 5555
   - name: "HTTP-5"
     type: http
-    server: 130.61.30.221
-    port: 8080
+    server: 159.223.225.118
+    port: 8888
   - name: "HTTP-6"
     type: http
     server: 35.73.28.87
     port: 3128
-  - name: "SOCKS5-7"
-    type: socks5
-    server: 43.153.45.254
-    port: 5555
-  - name: "HTTP-8"
-    type: http
-    server: 109.107.179.140
-    port: 31000
-  - name: "HTTP-9"
+  - name: "HTTP-7"
     type: http
     server: 147.161.210.140
     port: 8800
+  - name: "HTTP-8"
+    type: http
+    server: 5.196.101.18
+    port: 3128
+  - name: "HTTP-9"
+    type: http
+    server: 178.156.224.42
+    port: 3128
   - name: "HTTP-10"
     type: http
     server: 167.103.144.127
     port: 8800
-  - name: "HTTP-11"
-    type: http
-    server: 164.163.42.25
-    port: 10000
+  - name: "SOCKS5-11"
+    type: socks5
+    server: 192.210.140.36
+    port: 1080
   - name: "HTTP-12"
     type: http
-    server: 164.163.42.38
-    port: 10000
+    server: 217.52.247.67
+    port: 1981
   - name: "HTTP-13"
-    type: http
-    server: 164.163.42.17
-    port: 10000
-  - name: "HTTP-14"
-    type: http
-    server: 164.163.42.2
-    port: 10000
-  - name: "HTTP-15"
-    type: http
-    server: 164.163.42.34
-    port: 10000
-  - name: "HTTP-16"
-    type: http
-    server: 65.108.203.37
-    port: 28080
-  - name: "HTTP-17"
-    type: http
-    server: 164.163.42.10
-    port: 10000
-  - name: "HTTP-18"
-    type: http
-    server: 164.163.42.1
-    port: 10000
-  - name: "HTTP-19"
-    type: http
-    server: 167.103.115.102
-    port: 8800
-  - name: "HTTP-20"
-    type: http
-    server: 8.219.97.248
-    port: 80
-  - name: "HTTP-21"
-    type: http
-    server: 45.88.0.117
-    port: 3128
-  - name: "HTTP-22"
     type: http
     server: 52.74.26.202
     port: 8080
-  - name: "HTTP-23"
-    type: http
-    server: 103.157.200.126
-    port: 3128
-  - name: "HTTP-24"
-    type: http
-    server: 5.104.87.17
-    port: 8051
-  - name: "HTTP-25"
+  - name: "HTTP-14"
     type: http
     server: 167.103.34.108
     port: 8800
-  - name: "HTTP-26"
+  - name: "HTTP-15"
+    type: http
+    server: 140.238.254.5
+    port: 8080
+  - name: "HTTP-16"
     type: http
     server: 167.103.31.122
     port: 8800
-  - name: "HTTP-27"
-    type: http
-    server: 34.96.238.40
-    port: 8080
-  - name: "HTTP-28"
-    type: http
-    server: 103.165.157.206
-    port: 8088
-  - name: "HTTP-29"
+  - name: "HTTP-17"
     type: http
     server: 113.160.132.26
     port: 8080
-  - name: "SOCKS5-30"
-    type: socks5
-    server: 91.99.182.39
-    port: 4000
-  - name: "HTTP-31"
+  - name: "HTTP-18"
     type: http
-    server: 115.190.91.223
-    port: 7897
-  - name: "HTTP-32"
+    server: 103.157.200.126
+    port: 3128
+  - name: "HTTP-19"
     type: http
-    server: 123.57.0.163
+    server: 200.174.198.32
     port: 8888
-  - name: "SOCKS5-33"
+  - name: "HTTP-20"
+    type: http
+    server: 37.187.109.70
+    port: 10111
+  - name: "HTTP-21"
+    type: http
+    server: 197.164.101.11
+    port: 1976
+  - name: "SOCKS5-22"
     type: socks5
-    server: 109.71.241.67
-    port: 1080
-  - name: "SOCKS5-34"
-    type: socks5
-    server: 5.255.99.75
-    port: 1080
-  - name: "SOCKS5-35"
-    type: socks5
-    server: 77.239.112.110
-    port: 1080
-  - name: "SOCKS5-36"
+    server: 45.140.147.155
+    port: 1081
+  - name: "HTTP-23"
+    type: http
+    server: 185.76.240.254
+    port: 10001
+  - name: "SOCKS5-24"
     type: socks5
     server: 5.255.103.55
     port: 1080
-  - name: "HTTP-37"
-    type: http
-    server: 5.196.101.18
-    port: 3128
-  - name: "HTTP-38"
-    type: http
-    server: 103.132.152.201
-    port: 1452
-  - name: "SOCKS5-39"
+  - name: "SOCKS5-25"
     type: socks5
-    server: 213.176.67.251
-    port: 1080
-  - name: "SOCKS5-40"
+    server: 91.99.182.39
+    port: 4000
+  - name: "HTTP-26"
+    type: http
+    server: 185.76.240.169
+    port: 10001
+  - name: "SOCKS5-27"
+    type: socks5
+    server: 195.62.49.77
+    port: 980
+  - name: "SOCKS5-28"
     type: socks5
     server: 152.53.107.239
     port: 1080
-  - name: "SOCKS5-41"
+  - name: "SOCKS5-29"
     type: socks5
-    server: 202.61.238.68
+    server: 206.123.156.215
+    port: 5806
+  - name: "SOCKS5-30"
+    type: socks5
+    server: 94.103.15.98
     port: 1080
-  - name: "SOCKS5-42"
-    type: socks5
-    server: 213.165.58.8
-    port: 1080
-  - name: "HTTP-43"
+  - name: "HTTP-31"
     type: http
-    server: 46.30.46.133
-    port: 3128
-  - name: "SOCKS5-44"
-    type: socks5
-    server: 206.123.156.222
-    port: 8826
-  - name: "HTTP-45"
-    type: http
-    server: 94.131.118.39
-    port: 1081
-  - name: "SOCKS5-46"
+    server: 85.239.59.252
+    port: 7890
+  - name: "SOCKS5-32"
     type: socks5
     server: 206.123.156.227
-    port: 6169
-  - name: "SOCKS5-47"
+    port: 4782
+  - name: "HTTP-33"
+    type: http
+    server: 65.108.203.37
+    port: 28080
+  - name: "SOCKS5-34"
     type: socks5
-    server: 206.123.156.223
-    port: 5992
-  - name: "SOCKS5-48"
-    type: socks5
-    server: 206.123.156.177
-    port: 4830
-  - name: "SOCKS5-49"
+    server: 206.123.156.215
+    port: 4168
+  - name: "SOCKS5-35"
     type: socks5
     server: 206.123.156.215
     port: 5127
-  - name: "SOCKS5-50"
+  - name: "SOCKS5-36"
+    type: socks5
+    server: 206.123.156.227
+    port: 7324
+  - name: "SOCKS5-37"
+    type: socks5
+    server: 206.123.156.211
+    port: 6170
+  - name: "SOCKS5-38"
+    type: socks5
+    server: 206.123.156.218
+    port: 4139
+  - name: "SOCKS5-39"
     type: socks5
     server: 206.123.156.223
-    port: 20019
+    port: 4488
+  - name: "SOCKS5-40"
+    type: socks5
+    server: 206.123.156.218
+    port: 9179
+  - name: "SOCKS5-41"
+    type: socks5
+    server: 185.209.29.226
+    port: 1080
+  - name: "HTTP-42"
+    type: http
+    server: 65.108.203.35
+    port: 18080
+  - name: "SOCKS5-43"
+    type: socks5
+    server: 149.62.186.244
+    port: 1080
+  - name: "SOCKS5-44"
+    type: socks5
+    server: 217.26.25.129
+    port: 1080
+  - name: "SOCKS5-45"
+    type: socks5
+    server: 206.123.156.176
+    port: 5840
+  - name: "SOCKS5-46"
+    type: socks5
+    server: 206.123.156.227
+    port: 7635
+  - name: "SOCKS5-47"
+    type: socks5
+    server: 206.123.156.228
+    port: 4385
+  - name: "SOCKS5-48"
+    type: socks5
+    server: 206.123.156.222
+    port: 4595
+  - name: "SOCKS5-49"
+    type: socks5
+    server: 121.169.46.116
+    port: 1090
+  - name: "SOCKS5-50"
+    type: socks5
+    server: 206.123.156.227
+    port: 10086
 
 proxy-groups:
   - name: "Proxy"
@@ -225,14 +225,14 @@ proxy-groups:
       - "HTTP-1"
       - "HTTP-2"
       - "HTTP-3"
-      - "HTTP-4"
+      - "SOCKS5-4"
       - "HTTP-5"
       - "HTTP-6"
-      - "SOCKS5-7"
+      - "HTTP-7"
       - "HTTP-8"
       - "HTTP-9"
       - "HTTP-10"
-      - "HTTP-11"
+      - "SOCKS5-11"
       - "HTTP-12"
       - "HTTP-13"
       - "HTTP-14"
@@ -243,30 +243,30 @@ proxy-groups:
       - "HTTP-19"
       - "HTTP-20"
       - "HTTP-21"
-      - "HTTP-22"
+      - "SOCKS5-22"
       - "HTTP-23"
-      - "HTTP-24"
-      - "HTTP-25"
+      - "SOCKS5-24"
+      - "SOCKS5-25"
       - "HTTP-26"
-      - "HTTP-27"
-      - "HTTP-28"
-      - "HTTP-29"
+      - "SOCKS5-27"
+      - "SOCKS5-28"
+      - "SOCKS5-29"
       - "SOCKS5-30"
       - "HTTP-31"
-      - "HTTP-32"
-      - "SOCKS5-33"
+      - "SOCKS5-32"
+      - "HTTP-33"
       - "SOCKS5-34"
       - "SOCKS5-35"
       - "SOCKS5-36"
-      - "HTTP-37"
-      - "HTTP-38"
+      - "SOCKS5-37"
+      - "SOCKS5-38"
       - "SOCKS5-39"
       - "SOCKS5-40"
       - "SOCKS5-41"
-      - "SOCKS5-42"
-      - "HTTP-43"
+      - "HTTP-42"
+      - "SOCKS5-43"
       - "SOCKS5-44"
-      - "HTTP-45"
+      - "SOCKS5-45"
       - "SOCKS5-46"
       - "SOCKS5-47"
       - "SOCKS5-48"
@@ -282,14 +282,14 @@ proxy-groups:
       - "HTTP-1"
       - "HTTP-2"
       - "HTTP-3"
-      - "HTTP-4"
+      - "SOCKS5-4"
       - "HTTP-5"
       - "HTTP-6"
-      - "SOCKS5-7"
+      - "HTTP-7"
       - "HTTP-8"
       - "HTTP-9"
       - "HTTP-10"
-      - "HTTP-11"
+      - "SOCKS5-11"
       - "HTTP-12"
       - "HTTP-13"
       - "HTTP-14"
@@ -300,30 +300,30 @@ proxy-groups:
       - "HTTP-19"
       - "HTTP-20"
       - "HTTP-21"
-      - "HTTP-22"
+      - "SOCKS5-22"
       - "HTTP-23"
-      - "HTTP-24"
-      - "HTTP-25"
+      - "SOCKS5-24"
+      - "SOCKS5-25"
       - "HTTP-26"
-      - "HTTP-27"
-      - "HTTP-28"
-      - "HTTP-29"
+      - "SOCKS5-27"
+      - "SOCKS5-28"
+      - "SOCKS5-29"
       - "SOCKS5-30"
       - "HTTP-31"
-      - "HTTP-32"
-      - "SOCKS5-33"
+      - "SOCKS5-32"
+      - "HTTP-33"
       - "SOCKS5-34"
       - "SOCKS5-35"
       - "SOCKS5-36"
-      - "HTTP-37"
-      - "HTTP-38"
+      - "SOCKS5-37"
+      - "SOCKS5-38"
       - "SOCKS5-39"
       - "SOCKS5-40"
       - "SOCKS5-41"
-      - "SOCKS5-42"
-      - "HTTP-43"
+      - "HTTP-42"
+      - "SOCKS5-43"
       - "SOCKS5-44"
-      - "HTTP-45"
+      - "SOCKS5-45"
       - "SOCKS5-46"
       - "SOCKS5-47"
       - "SOCKS5-48"
