@@ -65,9 +65,23 @@ python convert.py
 # outputs land in ./output/
 ```
 
-## Sources
+## Notes for forkers
 
-- [databay-labs/free-proxy-list](https://github.com/databay-labs/free-proxy-list)
-- [monosans/proxy-list](https://github.com/monosans/proxy-list)
-- [proxifly/free-proxy-list](https://github.com/proxifly/free-proxy-list)
-- Clash rules: [Loyalsoldier/clash-rules](https://github.com/Loyalsoldier/clash-rules)
+If you fork this and run your own subscription, please be considerate of the upstream sources — they hand out these lists for free. For high-volume or popular deployments:
+
+- **Mirror upstream lists** into your own repo and pull from there instead of re-fetching the originals every run
+- **Self-host the Loyalsoldier rule files** via your own CDN (the jsdelivr URLs are great for personal use, but a popular fork can dent the cache hit rate)
+- **Stretch the cron interval** further if your users tolerate older data — proxies don't actually rotate every 2 hours
+
+And star the upstream projects below — they're the ones doing the hard work.
+
+## Acknowledgements
+
+- [databay-labs/free-proxy-list](https://github.com/databay-labs/free-proxy-list) — strict-SSL HTTP/SOCKS5 lists, refreshed every ~5 min
+- [monosans/proxy-list](https://github.com/monosans/proxy-list) — geolocation-tagged proxy lists, hourly refresh
+- [proxifly/free-proxy-list](https://github.com/proxifly/free-proxy-list) — high-volume HTTP/SOCKS lists, ~5 min refresh
+- [Loyalsoldier/clash-rules](https://github.com/Loyalsoldier/clash-rules) — community-maintained Clash rule providers
+
+## License
+
+[MIT](LICENSE) © steam-100
