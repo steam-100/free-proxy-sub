@@ -6,10 +6,17 @@ on:
     - cron: '*/30 * * * *'
   workflow_dispatch:
 
+# We only need write access for force-pushing to the orphan 'data' branch.
 permissions:
   contents: write
   pages: write
   id-token: write
+
+# Cancel an in-flight run if a new one starts (prevents push race conditions
+# when a manual dispatch overlaps with the scheduled cron).
+concurrency:
+  group: update-proxy-list
+  cancel-in-progress: true
 
 jobs:
   update:
@@ -20,21 +27,35 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
+          cache: pip
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
 
       - name: Convert proxies
         run: python convert.py
 
-      - name: Commit & push
+      # Force-push the output/ directory to an orphan 'data' branch.
+      # This keeps main's git history clean (no chore: spam every 30 min)
+      # while still serving the latest list via raw.githubusercontent.com.
+      - name: Publish outputs to data branch
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPO: ${{ github.repository }}
         run: |
-          git config user.name "github-actions[bot]"
+          set -euo pipefail
+          ts=$(date -u +'%Y-%m-%d %H:%M UTC')
+
+          pushd output
+          git init -q -b data
+          git config user.name  "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add output/
-          if git diff --staged --quiet; then
-            echo "No changes"
-          else
-            git commit -m "chore: update proxy list $(date -u +'%Y-%m-%d %H:%M UTC')"
-            git push
-          fi
+          git add .
+          git commit -q -m "data: ${ts}"
+          git push -q -f \
+            "https://x-access-token:${GH_TOKEN}@github.com/${GH_REPO}.git" \
+            data:data
+          popd
 
   deploy-pages:
     needs: update
@@ -43,9 +64,11 @@ jobs:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
+      # Pull the data branch — this is where output files now live as a
+      # single force-pushed commit.
       - uses: actions/checkout@v4
         with:
-          ref: master
+          ref: data
 
       - name: Setup Pages
         uses: actions/configure-pages@v5
@@ -53,7 +76,7 @@ jobs:
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: output
+          path: .
 
       - name: Deploy to GitHub Pages
         id: deployment
