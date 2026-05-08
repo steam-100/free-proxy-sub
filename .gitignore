@@ -1,2 +1,5 @@
 __pycache__/
 *.pyc
+
+# Subscription outputs live on the orphan 'data' branch, not on master.
+output/

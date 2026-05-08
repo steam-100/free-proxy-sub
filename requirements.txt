@@ -1,0 +1,2 @@
+# HTTP client + SOCKS5 support for proxy validation
+requests[socks]>=2.31.0
