@@ -3,9 +3,10 @@
 Auto-validated free proxy list, published in **Quantumult X** and **Clash Meta (Mihomo)** subscription formats.
 
 - 🔄 Auto-updated every **30 minutes** via GitHub Actions
-- 🌐 Aggregated from **3 upstream sources** (databay-labs, monosans, proxifly), deduplicated by `ip:port`
+- 🌐 Aggregated from **3 upstream sources** (databay-labs, monosans, proxifly)
 - ✅ Cross-validated with **2 probes** (gstatic + cloudflare), only proxies passing both are kept
-- 📊 Sorted by average latency, top **50** retained
+- 📊 **Per-source quota**: each source contributes its top 17 fastest survivors (final list ≤ 51 nodes, sorted by latency)
+- 🛡️ Diversified — insulated against any single upstream going dark
 - 🧹 Subscription files live on the orphan **`data`** branch — `main` history stays clean
 
 ## Subscription URLs
@@ -43,12 +44,13 @@ https://{username}.github.io/free-proxy-sub/clash.yaml
 ## How it works
 
 ```
-sources (3x http + 3x socks5)
-  ├── fetch (concurrent)
+sources (databay-labs + monosans + proxifly)
+  ├── fetch each source separately
   ├── parse + validate (regex, port range, octet range)
-  ├── dedupe by ip:port
+  ├── cross-source dedup — proxy attributed to first source listing it
   ├── cross-probe (gstatic 204 + cloudflare 204) ─ both must pass
-  ├── sort by avg latency, keep top 50
+  ├── per-source top-N selection (default 17 each, sorted by latency)
+  ├── final cross-source sort by latency
   └── emit qx.txt + clash.yaml → orphan `data` branch (force-push)
 ```
 

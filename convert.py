@@ -3,12 +3,15 @@
 Convert public free proxy lists to Quantumult X / Clash Meta subscription format.
 
 Pipeline:
-  1. Fetch raw proxy lists from multiple upstream sources (concurrently).
+  1. Fetch raw proxy lists from each upstream source.
   2. Parse + validate each line (regex + IPv4/port range checks).
-  3. Deduplicate by ip:port across all sources.
+  3. Cross-source dedup: a proxy is attributed to the FIRST source that lists it
+     (in SOURCES dict order). No double-counting overlap.
   4. Cross-validate each candidate against TWO probe URLs — both must pass.
-  5. Sort by average latency, keep the fastest N.
-  6. Emit QX list and a curated Clash Meta config (with rule-providers).
+  5. Per-source top-N selection: each source contributes up to PER_SOURCE_QUOTA
+     of its fastest survivors. Diversity > raw speed; insulates against any
+     single upstream going dark.
+  6. Final list sorted by latency, emitted as QX list + curated Clash Meta config.
 """
 
 import datetime
@@ -22,20 +25,23 @@ import requests
 from requests.exceptions import RequestException
 
 # ---------------------------------------------------------------------------
-# Sources — multiple upstreams, deduplicated by ip:port.
-# Add or remove sources here; each list is fetched concurrently.
+# Sources — grouped by upstream provider so we can quota per-source after
+# validation. Order matters: when the same ip:port appears in multiple
+# sources, attribution goes to the first one listed here.
 # ---------------------------------------------------------------------------
-SOURCES: dict[str, list[str]] = {
-    "http": [
-        "https://raw.githubusercontent.com/databay-labs/free-proxy-list/master/http.txt",
-        "https://raw.githubusercontent.com/monosans/proxy-list/main/proxies/http.txt",
-        "https://raw.githubusercontent.com/proxifly/free-proxy-list/main/proxies/protocols/http/data.txt",
-    ],
-    "socks5": [
-        "https://raw.githubusercontent.com/databay-labs/free-proxy-list/master/socks5.txt",
-        "https://raw.githubusercontent.com/monosans/proxy-list/main/proxies/socks5.txt",
-        "https://raw.githubusercontent.com/proxifly/free-proxy-list/main/proxies/protocols/socks5/data.txt",
-    ],
+SOURCES: dict[str, dict[str, str]] = {
+    "databay-labs": {
+        "http":   "https://raw.githubusercontent.com/databay-labs/free-proxy-list/master/http.txt",
+        "socks5": "https://raw.githubusercontent.com/databay-labs/free-proxy-list/master/socks5.txt",
+    },
+    "monosans": {
+        "http":   "https://raw.githubusercontent.com/monosans/proxy-list/main/proxies/http.txt",
+        "socks5": "https://raw.githubusercontent.com/monosans/proxy-list/main/proxies/socks5.txt",
+    },
+    "proxifly": {
+        "http":   "https://raw.githubusercontent.com/proxifly/free-proxy-list/main/proxies/protocols/http/data.txt",
+        "socks5": "https://raw.githubusercontent.com/proxifly/free-proxy-list/main/proxies/protocols/socks5/data.txt",
+    },
 }
 
 OUTPUT_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "output")
@@ -43,7 +49,7 @@ OUTPUT_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "output")
 # ---------------------------------------------------------------------------
 # Validation knobs
 # ---------------------------------------------------------------------------
-MAX_PROXIES = 50          # final cap kept in subscription output
+PER_SOURCE_QUOTA = 17     # cap per source (final list ≈ QUOTA × len(SOURCES))
 TIMEOUT_SEC = 3           # per-probe timeout
 CONCURRENCY = 80          # validation thread pool size
 FETCH_TIMEOUT_SEC = 30    # source fetch timeout
@@ -109,15 +115,6 @@ def fetch(url: str) -> list[str]:
 
     parsed = (parse_proxy_line(ln) for ln in r.text.splitlines())
     return [p for p in parsed if p]
-
-
-def fetch_all(urls: list[str]) -> set[str]:
-    """Fetch multiple sources concurrently; return a deduplicated set."""
-    seen: set[str] = set()
-    with ThreadPoolExecutor(max_workers=max(1, len(urls))) as pool:
-        for items in pool.map(fetch, urls):
-            seen.update(items)
-    return seen
 
 
 def _probe(session: requests.Session, proxies: dict, url: str) -> tuple[bool, float]:
@@ -196,7 +193,8 @@ def generate_qx(proxies: list[tuple[str, str, float]]) -> str:
         "# Free Proxy List for Quantumult X",
         f"# Updated: {now}",
         f"# Validated: {len(proxies)} nodes (sorted by avg latency, 2-probe)",
-        f"# Timeout: {TIMEOUT_SEC}s | Max: {MAX_PROXIES}",
+        f"# Strategy: per-source top {PER_SOURCE_QUOTA} from {len(SOURCES)} sources",
+        f"# Timeout: {TIMEOUT_SEC}s",
         "",
     ]
     for i, (proxy, ptype, latency) in enumerate(proxies, 1):
@@ -336,6 +334,7 @@ def generate_clash(proxies: list[tuple[str, str, float]]) -> str:
 # Clash Meta (Mihomo) Config - Free Proxy List
 # Updated: {now}
 # Validated: {len(proxies)} nodes (sorted by avg latency, 2-probe)
+# Strategy: per-source top {PER_SOURCE_QUOTA} from {len(SOURCES)} sources
 
 mixed-port: 7890
 allow-lan: false
@@ -399,42 +398,68 @@ proxy-groups:
 def main() -> None:
     os.makedirs(OUTPUT_DIR, exist_ok=True)
 
+    # ---- Fetch + cross-source dedup ----
+    # A proxy is attributed to the FIRST source (in SOURCES dict order) that
+    # lists it. This makes per-source counts reflect "unique contributions"
+    # and prevents the same node from being validated twice.
     print("=> Fetching proxy lists from multiple sources...")
-    http_set = fetch_all(SOURCES["http"])
-    socks5_set = fetch_all(SOURCES["socks5"])
-    print(f"   HTTP: {len(http_set)} unique | SOCKS5: {len(socks5_set)} unique")
+    seen: set[tuple[str, str]] = set()
+    by_source: dict[str, dict[str, list[str]]] = {}
+    for source_name, urls in SOURCES.items():
+        by_source[source_name] = {}
+        for ptype, url in urls.items():
+            unique: list[str] = []
+            for p in fetch(url):
+                key = (p, ptype)
+                if key not in seen:
+                    seen.add(key)
+                    unique.append(p)
+            by_source[source_name][ptype] = unique
+            print(f"   {source_name:>15} {ptype:>6}: {len(unique):>4} unique")
 
-    if not http_set and not socks5_set:
+    if not seen:
         print("[ERROR] No proxies fetched, aborting.")
         return
 
+    # ---- Validate per-source, then per-source top-N ----
+    # Each source contributes up to PER_SOURCE_QUOTA fastest survivors.
+    # If a source has fewer survivors, it simply contributes fewer.
     print("=> Validating proxies (2-probe cross-validation)...")
-    valid: list[tuple[str, str, float]] = []
-    if http_set:
-        valid.extend(validate_proxies(sorted(http_set), "http"))
-    if socks5_set:
-        valid.extend(validate_proxies(sorted(socks5_set), "socks5"))
+    final: list[tuple[str, str, float]] = []
+    for source_name, types_dict in by_source.items():
+        per_source_valid: list[tuple[str, str, float]] = []
+        for ptype, candidates in types_dict.items():
+            if not candidates:
+                continue
+            per_source_valid.extend(validate_proxies(candidates, ptype))
+        per_source_valid.sort(key=lambda x: x[2])
+        kept = per_source_valid[:PER_SOURCE_QUOTA]
+        print(
+            f"   {source_name:>15}: kept {len(kept):>2} "
+            f"of {len(per_source_valid):>3} valid (quota {PER_SOURCE_QUOTA})"
+        )
+        final.extend(kept)
 
-    valid.sort(key=lambda x: x[2])
-    valid = valid[:MAX_PROXIES]
-    print(f"=> Kept {len(valid)} fastest proxies")
+    # Final cross-source sort by latency for the output.
+    final.sort(key=lambda x: x[2])
+    print(f"=> Final list: {len(final)} proxies")
 
-    if not valid:
+    if not final:
         print("[WARN] No valid proxies found, keeping previous output.")
         return
 
     # Quick sanity print
-    for proxy, ptype, latency in valid[:5]:
+    for proxy, ptype, latency in final[:5]:
         print(f"   #{ptype}: {proxy} ({latency}ms)")
 
     qx_path = os.path.join(OUTPUT_DIR, "qx.txt")
     with open(qx_path, "w") as f:
-        f.write(generate_qx(valid))
+        f.write(generate_qx(final))
     print(f"   => {qx_path}")
 
     clash_path = os.path.join(OUTPUT_DIR, "clash.yaml")
     with open(clash_path, "w") as f:
-        f.write(generate_clash(valid))
+        f.write(generate_clash(final))
     print(f"   => {clash_path}")
 
     print("=> Done!")
