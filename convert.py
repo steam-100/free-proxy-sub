@@ -49,17 +49,29 @@ OUTPUT_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "output")
 # ---------------------------------------------------------------------------
 # Validation knobs
 # ---------------------------------------------------------------------------
-PER_SOURCE_QUOTA = 17     # cap per source (final list ≈ QUOTA × len(SOURCES))
-TIMEOUT_SEC = 3           # per-probe timeout
-CONCURRENCY = 80          # validation thread pool size
-FETCH_TIMEOUT_SEC = 30    # source fetch timeout
+PER_SOURCE_QUOTA = 17           # cap per source
+TIMEOUT_SEC = 3                 # per-probe timeout
+CONCURRENCY = 80                # validation thread pool size
+FETCH_TIMEOUT_SEC = 30          # source fetch timeout
 
-# Probe both endpoints — only proxies that succeed on BOTH are kept.
-# Reduces false positives from captive portals / partial blockers.
+# Strict quality gates — ALL must pass for a proxy to survive validation.
+MAX_LATENCY_MS = 500            # median latency hard cap (per probe URL)
+MAX_JITTER_MS = 200             # max - min across samples (stability check)
+MIN_THROUGHPUT_KBPS = 30        # 100KB download throughput floor
+PROBE_SAMPLES = 3               # samples per endpoint (for median + jitter)
+
+# Probe both HTTP and HTTPS — many free proxies forward http but not https.
+# Each endpoint is sampled PROBE_SAMPLES times for jitter measurement.
 PROBE_URLS = [
-    "http://www.gstatic.com/generate_204",
-    "http://cp.cloudflare.com/generate_204",
+    "http://www.gstatic.com/generate_204",        # plain HTTP forwarding
+    "https://cp.cloudflare.com/generate_204",     # HTTPS forwarding + diff endpoint
 ]
+
+# Throughput probe: download exactly 100KB via cloudflare's speedtest API.
+# Filters proxies that ping low but transfer at dial-up speeds.
+THROUGHPUT_URL = "https://speed.cloudflare.com/__down?bytes=102400"
+THROUGHPUT_BYTES = 100 * 1024
+THROUGHPUT_TIMEOUT_SEC = 8      # generous — let slow proxies fail honestly
 
 # Accepts:
 #   "1.2.3.4:8080"
@@ -134,10 +146,69 @@ def _probe(session: requests.Session, proxies: dict, url: str) -> tuple[bool, fl
         return False, float("inf")
 
 
-def check_proxy(proxy: str, proxy_type: str) -> Optional[tuple[str, str, float]]:
-    """Cross-validate a proxy against all PROBE_URLS.
+def _probe_samples(
+    session: requests.Session, proxies: dict, url: str
+) -> tuple[bool, float, float]:
+    """Probe an endpoint PROBE_SAMPLES times. Fast-fail on any error.
 
-    Returns (proxy, type, avg_latency_ms) only if EVERY probe succeeds.
+    Returns (ok, median_ms, jitter_ms). jitter = max - min across samples,
+    catches proxies that look fine on one ping but actually flap.
+    """
+    samples: list[float] = []
+    for _ in range(PROBE_SAMPLES):
+        ok, ms = _probe(session, proxies, url)
+        if not ok:
+            return False, float("inf"), float("inf")
+        samples.append(ms)
+    samples.sort()
+    median = samples[len(samples) // 2]
+    jitter = samples[-1] - samples[0]
+    return True, median, jitter
+
+
+def _measure_throughput(session: requests.Session, proxies: dict) -> float:
+    """Download THROUGHPUT_BYTES through the proxy. Return KB/s (0 on fail).
+
+    Truncated responses (e.g. proxy returning a tiny error page instead of
+    the speedtest payload) are rejected — many free proxies fake success.
+    """
+    try:
+        start = time.monotonic()
+        r = session.get(
+            THROUGHPUT_URL,
+            proxies=proxies,
+            timeout=THROUGHPUT_TIMEOUT_SEC,
+            stream=True,
+            allow_redirects=True,
+        )
+        if r.status_code != 200:
+            return 0.0
+        downloaded = 0
+        for chunk in r.iter_content(chunk_size=8192):
+            downloaded += len(chunk)
+            if downloaded >= THROUGHPUT_BYTES:
+                break
+        elapsed = time.monotonic() - start
+    except Exception:
+        return 0.0
+
+    # Guard against early-close / wrong-sized payloads
+    if elapsed <= 0 or downloaded < THROUGHPUT_BYTES * 0.8:
+        return 0.0
+    return (downloaded / 1024) / elapsed
+
+
+def check_proxy(proxy: str, proxy_type: str) -> Optional[tuple[str, str, float]]:
+    """Strict validation pipeline.
+
+    A proxy survives only if ALL conditions hold:
+      - PROBE_SAMPLES consecutive successes on EVERY PROBE_URL
+      - Median latency < MAX_LATENCY_MS on every probe
+      - Jitter (max-min) < MAX_JITTER_MS on every probe
+      - 100KB download throughput >= MIN_THROUGHPUT_KBPS
+
+    Cheap checks run first — bad proxies fail fast without paying for the
+    throughput download. Returns (proxy, type, avg_median_ms) on success.
     """
     if proxy_type == "http":
         proxy_url = f"http://{proxy}"
@@ -146,15 +217,20 @@ def check_proxy(proxy: str, proxy_type: str) -> Optional[tuple[str, str, float]]
         proxy_url = f"socks5://{proxy}"
     proxies = {"http": proxy_url, "https": proxy_url}
 
-    latencies: list[float] = []
+    medians: list[float] = []
     with requests.Session() as s:
+        # Stage 1: latency + jitter on each probe URL
         for probe_url in PROBE_URLS:
-            ok, ms = _probe(s, proxies, probe_url)
-            if not ok:
+            ok, median, jitter = _probe_samples(s, proxies, probe_url)
+            if not ok or median > MAX_LATENCY_MS or jitter > MAX_JITTER_MS:
                 return None
-            latencies.append(ms)
+            medians.append(median)
 
-    avg_ms = round(sum(latencies) / len(latencies))
+        # Stage 2: throughput (most expensive — gated by latency stage)
+        if _measure_throughput(s, proxies) < MIN_THROUGHPUT_KBPS:
+            return None
+
+    avg_ms = round(sum(medians) / len(medians))
     return (proxy, proxy_type, avg_ms)
 
 
@@ -192,9 +268,9 @@ def generate_qx(proxies: list[tuple[str, str, float]]) -> str:
     lines = [
         "# Free Proxy List for Quantumult X",
         f"# Updated: {now}",
-        f"# Validated: {len(proxies)} nodes (sorted by avg latency, 2-probe)",
+        f"# Validated: {len(proxies)} nodes ({len(PROBE_URLS)} probes × {PROBE_SAMPLES} samples)",
+        f"# Gates: <{MAX_LATENCY_MS}ms median | <{MAX_JITTER_MS}ms jitter | >={MIN_THROUGHPUT_KBPS}KB/s",
         f"# Strategy: per-source top {PER_SOURCE_QUOTA} from {len(SOURCES)} sources",
-        f"# Timeout: {TIMEOUT_SEC}s",
         "",
     ]
     for i, (proxy, ptype, latency) in enumerate(proxies, 1):
@@ -333,7 +409,8 @@ def generate_clash(proxies: list[tuple[str, str, float]]) -> str:
     header = f"""\
 # Clash Meta (Mihomo) Config - Free Proxy List
 # Updated: {now}
-# Validated: {len(proxies)} nodes (sorted by avg latency, 2-probe)
+# Validated: {len(proxies)} nodes ({len(PROBE_URLS)} probes × {PROBE_SAMPLES} samples)
+# Gates: <{MAX_LATENCY_MS}ms median | <{MAX_JITTER_MS}ms jitter | >={MIN_THROUGHPUT_KBPS}KB/s
 # Strategy: per-source top {PER_SOURCE_QUOTA} from {len(SOURCES)} sources
 
 mixed-port: 7890

@@ -4,7 +4,7 @@ Auto-validated free proxy list, published in **Quantumult X** and **Clash Meta (
 
 - 🔄 Auto-updated every **30 minutes** via GitHub Actions
 - 🌐 Aggregated from **3 upstream sources** (databay-labs, monosans, proxifly)
-- ✅ Cross-validated with **2 probes** (gstatic + cloudflare), only proxies passing both are kept
+- ✅ **Strict quality gates**: HTTP+HTTPS probe forwarding × 3 samples each — survivors must hit `<500ms` median, `<200ms` jitter, `≥30KB/s` throughput
 - 📊 **Per-source quota**: each source contributes its top 17 fastest survivors (final list ≤ 51 nodes, sorted by latency)
 - 🛡️ Diversified — insulated against any single upstream going dark
 - 🧹 Subscription files live on the orphan **`data`** branch — `main` history stays clean
@@ -48,7 +48,10 @@ sources (databay-labs + monosans + proxifly)
   ├── fetch each source separately
   ├── parse + validate (regex, port range, octet range)
   ├── cross-source dedup — proxy attributed to first source listing it
-  ├── cross-probe (gstatic 204 + cloudflare 204) ─ both must pass
+  ├── strict gates (fail-fast pipeline):
+  │     ├── HTTP probe   × 3 samples   → median <500ms, jitter <200ms
+  │     ├── HTTPS probe  × 3 samples   → median <500ms, jitter <200ms
+  │     └── 100KB throughput download  → ≥30KB/s
   ├── per-source top-N selection (default 17 each, sorted by latency)
   ├── final cross-source sort by latency
   └── emit qx.txt + clash.yaml → orphan `data` branch (force-push)
