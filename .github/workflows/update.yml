@@ -2,8 +2,10 @@ name: Update Proxy List
 
 on:
   schedule:
-    # Run every 30 minutes
-    - cron: '*/30 * * * *'
+    # Every 2 hours at :13 (offset from :00 to dodge GitHub cron congestion).
+    # Matches typical client refresh cadence; upstream sources update at
+    # most hourly, so 2h is well within freshness budget.
+    - cron: '13 */2 * * *'
   workflow_dispatch:
 
 # We only need write access for force-pushing to the orphan 'data' branch.

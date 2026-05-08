@@ -2,7 +2,7 @@
 
 Auto-validated free proxy list, published in **Quantumult X** and **Clash Meta (Mihomo)** subscription formats.
 
-- 🔄 Auto-updated every **30 minutes** via GitHub Actions
+- 🔄 Auto-updated every **2 hours** via GitHub Actions
 - 🌐 Aggregated from **3 upstream sources** (databay-labs, monosans, proxifly)
 - ✅ **Strict quality gates**: HTTP+HTTPS probe forwarding × 3 samples each — survivors must hit `<500ms` median, `<200ms` jitter, `≥30KB/s` throughput
 - 📊 **Per-source quota**: each source contributes its top 17 fastest survivors (final list ≤ 51 nodes, sorted by latency)
