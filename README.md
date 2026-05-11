@@ -34,12 +34,16 @@ The Clash config ships with curated **rule-providers** (Loyalsoldier upstream):
 - 🇨🇳 China CIDR direct
 - 🤖 OpenAI / Claude / Anthropic explicit proxy
 
-### GitHub Pages mirror (alternative)
+### jsdelivr CDN mirror (recommended for China)
+
+If `raw.githubusercontent.com` triggers SSL errors in your client (common GFW symptom), use jsdelivr — it's faster and rarely blocked:
 
 ```
-https://{username}.github.io/free-proxy-sub/qx.txt
-https://{username}.github.io/free-proxy-sub/clash.yaml
+https://cdn.jsdelivr.net/gh/{username}/free-proxy-sub@data/qx.txt
+https://cdn.jsdelivr.net/gh/{username}/free-proxy-sub@data/clash.yaml
 ```
+
+Cache TTL is up to 12 hours; append `?cache=invalidate` to force-refresh.
 
 ## How it works
 

@@ -8,11 +8,9 @@ on:
     - cron: '13 */2 * * *'
   workflow_dispatch:
 
-# We only need write access for force-pushing to the orphan 'data' branch.
+# Only need write access to push to the orphan 'data' branch.
 permissions:
   contents: write
-  pages: write
-  id-token: write
 
 # Cancel an in-flight run if a new one starts (prevents push race conditions
 # when a manual dispatch overlaps with the scheduled cron).
@@ -38,8 +36,8 @@ jobs:
         run: python convert.py
 
       # Force-push the output/ directory to an orphan 'data' branch.
-      # This keeps main's git history clean (no chore: spam every 30 min)
-      # while still serving the latest list via raw.githubusercontent.com.
+      # This keeps master's git history clean while still serving the
+      # latest list via raw.githubusercontent.com / jsdelivr / ghproxy.
       - name: Publish outputs to data branch
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -58,28 +56,3 @@ jobs:
             "https://x-access-token:${GH_TOKEN}@github.com/${GH_REPO}.git" \
             data:data
           popd
-
-  deploy-pages:
-    needs: update
-    runs-on: ubuntu-latest
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-    steps:
-      # Pull the data branch — this is where output files now live as a
-      # single force-pushed commit.
-      - uses: actions/checkout@v4
-        with:
-          ref: data
-
-      - name: Setup Pages
-        uses: actions/configure-pages@v5
-
-      - name: Upload artifact
-        uses: actions/upload-pages-artifact@v3
-        with:
-          path: .
-
-      - name: Deploy to GitHub Pages
-        id: deployment
-        uses: actions/deploy-pages@v4
