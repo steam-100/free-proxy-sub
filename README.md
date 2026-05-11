@@ -11,19 +11,28 @@ Auto-validated free proxy list, published in **Quantumult X** and **Clash Meta (
 
 ## Subscription URLs
 
-Replace `{username}` with your GitHub username.
-
-### Quantumult X
+### jsdelivr CDN (recommended — works behind GFW)
 
 ```
-https://raw.githubusercontent.com/{username}/free-proxy-sub/data/qx.txt
+https://cdn.jsdelivr.net/gh/steam-100/free-proxy-sub@data/qx.txt
+https://cdn.jsdelivr.net/gh/steam-100/free-proxy-sub@data/clash.yaml
 ```
 
-### Clash Meta / Mihomo
+Cache TTL is up to 12 hours; append `?cache=invalidate` to force-refresh.
+
+### Quantumult X (raw)
 
 ```
-https://raw.githubusercontent.com/{username}/free-proxy-sub/data/clash.yaml
+https://raw.githubusercontent.com/steam-100/free-proxy-sub/data/qx.txt
 ```
+
+### Clash Meta / Mihomo (raw)
+
+```
+https://raw.githubusercontent.com/steam-100/free-proxy-sub/data/clash.yaml
+```
+
+> If `raw.githubusercontent.com` returns "certificate invalid" in your client (common GFW symptom), switch to the jsdelivr URL above.
 
 The Clash config ships with curated **rule-providers** (Loyalsoldier upstream):
 
@@ -33,17 +42,6 @@ The Clash config ships with curated **rule-providers** (Loyalsoldier upstream):
 - 📨 Telegram CIDR proxy
 - 🇨🇳 China CIDR direct
 - 🤖 OpenAI / Claude / Anthropic explicit proxy
-
-### jsdelivr CDN mirror (recommended for China)
-
-If `raw.githubusercontent.com` triggers SSL errors in your client (common GFW symptom), use jsdelivr — it's faster and rarely blocked:
-
-```
-https://cdn.jsdelivr.net/gh/{username}/free-proxy-sub@data/qx.txt
-https://cdn.jsdelivr.net/gh/{username}/free-proxy-sub@data/clash.yaml
-```
-
-Cache TTL is up to 12 hours; append `?cache=invalidate` to force-refresh.
 
 ## How it works
 
