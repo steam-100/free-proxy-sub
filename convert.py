@@ -57,6 +57,8 @@ V2RAY_SUB_URLS: list[str] = [
 
 _V2RAY_SCHEMES = ("ss://", "vmess://", "trojan://", "vless://", "hysteria2://", "hy2://")
 
+V2RAY_QUOTA = 80                # cap on V2Ray URIs (upstream already sorted by speed)
+
 # ---------------------------------------------------------------------------
 # Validation knobs
 # ---------------------------------------------------------------------------
@@ -615,6 +617,11 @@ def main() -> None:
         uris = fetch_v2ray_sub(url)
         print(f"   {url.split('/')[-2]:>20}: {len(uris)} URIs")
         v2ray_uris.extend(uris)
+
+    # Cap V2Ray URIs — upstream is pre-sorted by speed, take the fastest
+    if len(v2ray_uris) > V2RAY_QUOTA:
+        print(f"   trimmed {len(v2ray_uris)} → {V2RAY_QUOTA} (quota)")
+        v2ray_uris = v2ray_uris[:V2RAY_QUOTA]
 
     total_rocket = len(final) + len(v2ray_uris)
     if total_rocket == 0:
