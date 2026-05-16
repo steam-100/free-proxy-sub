@@ -14,6 +14,7 @@ Pipeline:
   6. Final list sorted by latency, emitted as QX list + curated Clash Meta config.
 """
 
+import base64
 import datetime
 import os
 import re
@@ -47,6 +48,16 @@ SOURCES: dict[str, dict[str, str]] = {
 OUTPUT_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "output")
 
 # ---------------------------------------------------------------------------
+# V2Ray subscription sources — pre-validated by upstream, pulled as base64.
+# These provide ss/vmess/trojan/vless URIs for Shadowrocket output.
+# ---------------------------------------------------------------------------
+V2RAY_SUB_URLS: list[str] = [
+    "https://raw.githubusercontent.com/mahdibland/V2RayAggregator/master/sub/sub_merge_base64.txt",
+]
+
+_V2RAY_SCHEMES = ("ss://", "vmess://", "trojan://", "vless://", "hysteria2://", "hy2://")
+
+# ---------------------------------------------------------------------------
 # Validation knobs
 # ---------------------------------------------------------------------------
 PER_SOURCE_QUOTA = 17           # cap per source
@@ -55,9 +66,9 @@ CONCURRENCY = 80                # validation thread pool size
 FETCH_TIMEOUT_SEC = 30          # source fetch timeout
 
 # Strict quality gates — ALL must pass for a proxy to survive validation.
-MAX_LATENCY_MS = 500            # median latency hard cap (per probe URL)
-MAX_JITTER_MS = 200             # max - min across samples (stability check)
-MIN_THROUGHPUT_KBPS = 30        # 100KB download throughput floor
+MAX_LATENCY_MS = 800            # median latency hard cap (per probe URL)
+MAX_JITTER_MS = 400             # max - min across samples (stability check)
+MIN_THROUGHPUT_KBPS = 15        # 100KB download throughput floor
 PROBE_SAMPLES = 3               # samples per endpoint (for median + jitter)
 
 # Probe both HTTP and HTTPS — many free proxies forward http but not https.
@@ -127,6 +138,32 @@ def fetch(url: str) -> list[str]:
 
     parsed = (parse_proxy_line(ln) for ln in r.text.splitlines())
     return [p for p in parsed if p]
+
+
+def fetch_v2ray_sub(url: str) -> list[str]:
+    """Fetch a base64-encoded V2Ray subscription and return decoded URI lines.
+
+    Trusted upstream — no local probe validation (requests can't speak ss/vmess).
+    """
+    try:
+        r = requests.get(url, timeout=FETCH_TIMEOUT_SEC)
+        r.raise_for_status()
+    except RequestException as e:
+        print(f"  [WARN] v2ray sub fetch failed {url}: {e}")
+        return []
+
+    try:
+        decoded = base64.b64decode(r.text.strip()).decode("utf-8", errors="ignore")
+    except Exception as e:
+        print(f"  [WARN] v2ray sub decode failed {url}: {e}")
+        return []
+
+    uris: list[str] = []
+    for line in decoded.splitlines():
+        line = line.strip()
+        if line and any(line.startswith(s) for s in _V2RAY_SCHEMES):
+            uris.append(line)
+    return uris
 
 
 def _probe(session: requests.Session, proxies: dict, url: str) -> tuple[bool, float]:
@@ -470,6 +507,39 @@ proxy-groups:
 
 
 # ---------------------------------------------------------------------------
+# Output: Shadowrocket (base64-encoded URI list)
+# ---------------------------------------------------------------------------
+def generate_shadowrocket(
+    proxies: list[tuple[str, str, float]],
+    v2ray_uris: list[str],
+) -> str:
+    """Generate Shadowrocket subscription (base64-encoded URI list).
+
+    Combines locally-validated http/socks5 proxies with upstream V2Ray URIs
+    (ss/vmess/trojan/vless) into one subscription.
+    """
+    from urllib.parse import quote
+
+    uris: list[str] = []
+
+    # Validated http/socks5 proxies → URI form
+    for i, (proxy, ptype, latency) in enumerate(proxies, 1):
+        ip, port = proxy.split(":", 1)
+        name = quote(f"{ptype.upper()}-{i} [{latency}ms]")
+        if ptype == "socks5":
+            uris.append(f"socks5://{ip}:{port}#{name}")
+        else:
+            # Shadowrocket accepts http:// scheme for plain HTTP proxies
+            uris.append(f"http://{ip}:{port}#{name}")
+
+    # V2Ray URIs (ss/vmess/trojan/vless — pre-validated by upstream)
+    uris.extend(v2ray_uris)
+
+    content = "\n".join(uris) + "\n"
+    return base64.b64encode(content.encode("utf-8")).decode("utf-8")
+
+
+# ---------------------------------------------------------------------------
 # Main
 # ---------------------------------------------------------------------------
 def main() -> None:
@@ -522,22 +592,39 @@ def main() -> None:
     print(f"=> Final list: {len(final)} proxies")
 
     if not final:
-        print("[WARN] No valid proxies found, keeping previous output.")
+        print("[WARN] No valid http/socks5 proxies found, skipping qx/clash output.")
+    else:
+        # Quick sanity print
+        for proxy, ptype, latency in final[:5]:
+            print(f"   #{ptype}: {proxy} ({latency}ms)")
+
+        qx_path = os.path.join(OUTPUT_DIR, "qx.txt")
+        with open(qx_path, "w") as f:
+            f.write(generate_qx(final))
+        print(f"   => {qx_path}")
+
+        clash_path = os.path.join(OUTPUT_DIR, "clash.yaml")
+        with open(clash_path, "w") as f:
+            f.write(generate_clash(final))
+        print(f"   => {clash_path}")
+
+    # ---- Fetch V2Ray subscriptions (ss/vmess/trojan/vless) ----
+    print("=> Fetching V2Ray subscriptions (trusted upstream)...")
+    v2ray_uris: list[str] = []
+    for url in V2RAY_SUB_URLS:
+        uris = fetch_v2ray_sub(url)
+        print(f"   {url.split('/')[-2]:>20}: {len(uris)} URIs")
+        v2ray_uris.extend(uris)
+
+    total_rocket = len(final) + len(v2ray_uris)
+    if total_rocket == 0:
+        print("[WARN] No nodes at all (http/socks5 + v2ray), keeping previous output.")
         return
 
-    # Quick sanity print
-    for proxy, ptype, latency in final[:5]:
-        print(f"   #{ptype}: {proxy} ({latency}ms)")
-
-    qx_path = os.path.join(OUTPUT_DIR, "qx.txt")
-    with open(qx_path, "w") as f:
-        f.write(generate_qx(final))
-    print(f"   => {qx_path}")
-
-    clash_path = os.path.join(OUTPUT_DIR, "clash.yaml")
-    with open(clash_path, "w") as f:
-        f.write(generate_clash(final))
-    print(f"   => {clash_path}")
+    rocket_path = os.path.join(OUTPUT_DIR, "shadowrocket.txt")
+    with open(rocket_path, "w") as f:
+        f.write(generate_shadowrocket(final, v2ray_uris))
+    print(f"   => {rocket_path} ({total_rocket} nodes: {len(final)} validated + {len(v2ray_uris)} v2ray)")
 
     print("=> Done!")
 

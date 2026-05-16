@@ -1,10 +1,10 @@
 # Free Proxy Subscription
 
-Auto-validated free proxy list, published in **Quantumult X** and **Clash Meta (Mihomo)** subscription formats.
+Auto-validated free proxy list, published in **Quantumult X**, **Clash Meta (Mihomo)**, and **Shadowrocket** subscription formats.
 
 - 🔄 Auto-updated every **2 hours** via GitHub Actions
-- 🌐 Aggregated from **3 upstream sources** (databay-labs, monosans, proxifly)
-- ✅ **Strict quality gates**: HTTP+HTTPS probe forwarding × 3 samples each — survivors must hit `<500ms` median, `<200ms` jitter, `≥30KB/s` throughput
+- 🌐 Aggregated from **3 upstream sources** (databay-labs, monosans, proxifly) + **V2Ray subscriptions** (V2RayAggregator)
+- ✅ **Strict quality gates**: HTTP+HTTPS probe forwarding × 3 samples each — survivors must hit `<800ms` median, `<400ms` jitter, `≥15KB/s` throughput
 - 📊 **Per-source quota**: each source contributes its top 17 fastest survivors (final list ≤ 51 nodes, sorted by latency)
 - 🛡️ Diversified — insulated against any single upstream going dark
 - 🧹 Subscription files live on the orphan **`data`** branch — `main` history stays clean
@@ -16,6 +16,7 @@ Auto-validated free proxy list, published in **Quantumult X** and **Clash Meta (
 ```
 https://cdn.jsdelivr.net/gh/steam-100/free-proxy-sub@data/qx.txt
 https://cdn.jsdelivr.net/gh/steam-100/free-proxy-sub@data/clash.yaml
+https://cdn.jsdelivr.net/gh/steam-100/free-proxy-sub@data/shadowrocket.txt
 ```
 
 Cache TTL is up to 12 hours; append `?cache=invalidate` to force-refresh.
@@ -34,6 +35,14 @@ https://raw.githubusercontent.com/steam-100/free-proxy-sub/data/clash.yaml
 
 > If `raw.githubusercontent.com` returns "certificate invalid" in your client (common GFW symptom), switch to the jsdelivr URL above.
 
+### Shadowrocket (raw)
+
+```
+https://raw.githubusercontent.com/steam-100/free-proxy-sub/data/shadowrocket.txt
+```
+
+> Shadowrocket subscription is base64-encoded and includes both locally-validated HTTP/SOCKS5 proxies and upstream V2Ray nodes (SS/VMess/Trojan/VLESS).
+
 The Clash config ships with curated **rule-providers** (Loyalsoldier upstream):
 
 - 🚫 Ad / tracker block (`reject`)
@@ -51,12 +60,14 @@ sources (databay-labs + monosans + proxifly)
   ├── parse + validate (regex, port range, octet range)
   ├── cross-source dedup — proxy attributed to first source listing it
   ├── strict gates (fail-fast pipeline):
-  │     ├── HTTP probe   × 3 samples   → median <500ms, jitter <200ms
-  │     ├── HTTPS probe  × 3 samples   → median <500ms, jitter <200ms
-  │     └── 100KB throughput download  → ≥30KB/s
+  │     ├── HTTP probe   × 3 samples   → median <800ms, jitter <400ms
+  │     ├── HTTPS probe  × 3 samples   → median <800ms, jitter <400ms
+  │     └── 100KB throughput download  → ≥15KB/s
   ├── per-source top-N selection (default 17 each, sorted by latency)
   ├── final cross-source sort by latency
-  └── emit qx.txt + clash.yaml → orphan `data` branch (force-push)
+  ├── emit qx.txt + clash.yaml → orphan `data` branch (force-push)
+  └── fetch V2Ray subs (V2RayAggregator) → combine with validated proxies
+      └── emit shadowrocket.txt (base64 URI list) → `data` branch
 ```
 
 ## Local development
@@ -83,6 +94,7 @@ And star the upstream projects below — they're the ones doing the hard work.
 - [monosans/proxy-list](https://github.com/monosans/proxy-list) — geolocation-tagged proxy lists, hourly refresh
 - [proxifly/free-proxy-list](https://github.com/proxifly/free-proxy-list) — high-volume HTTP/SOCKS lists, ~5 min refresh
 - [Loyalsoldier/clash-rules](https://github.com/Loyalsoldier/clash-rules) — community-maintained Clash rule providers
+- [mahdibland/V2RayAggregator](https://github.com/mahdibland/V2RayAggregator) — speed-tested SS/VMess/Trojan aggregator
 
 ## License
 
