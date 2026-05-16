@@ -57,7 +57,7 @@ V2RAY_SUB_URLS: list[str] = [
 
 _V2RAY_SCHEMES = ("ss://", "vmess://", "trojan://", "vless://", "hysteria2://", "hy2://")
 
-V2RAY_QUOTA = 80                # cap on V2Ray URIs (upstream already sorted by speed)
+V2RAY_QUOTA = 30                # cap on V2Ray URIs (upstream already sorted by speed)
 
 # ---------------------------------------------------------------------------
 # Validation knobs
