@@ -1,0 +1,25 @@
+# Free Proxy List for Quantumult X
+# Updated: 2026-09-05 18:19 UTC
+# Validated: 19 nodes (2 probes × 3 samples)
+# Gates: <800ms median | <400ms jitter | >=15KB/s
+# Strategy: per-source top 17 from 3 sources
+
+SOCKS5-1[7ms] = socks5, 20.83.154.79, 7070
+HTTP-2[10ms] = http, 64.112.184.210, 3128
+SOCKS5-3[13ms] = socks5, 5.161.115.244, 1080
+HTTP-4[15ms] = http, 199.7.149.96, 3128
+SOCKS5-5[31ms] = socks5, 67.207.92.87, 1088
+HTTP-6[32ms] = http, 134.199.192.3, 3128
+HTTP-7[33ms] = http, 161.35.181.96, 999
+SOCKS5-8[42ms] = socks5, 50.30.36.17, 1080
+SOCKS5-9[44ms] = socks5, 103.101.202.75, 1080
+SOCKS5-10[47ms] = socks5, 103.101.202.27, 1080
+SOCKS5-11[48ms] = socks5, 103.101.202.147, 1080
+SOCKS5-12[59ms] = socks5, 172.86.88.139, 1080
+HTTP-13[61ms] = http, 34.69.61.247, 80
+HTTP-14[62ms] = http, 107.167.18.122, 443
+SOCKS5-15[62ms] = socks5, 45.32.160.61, 1088
+HTTP-16[70ms] = http, 54.215.177.125, 1001
+SOCKS5-17[108ms] = socks5, 107.181.252.58, 1081
+SOCKS5-18[109ms] = socks5, 107.167.18.122, 443
+HTTP-19[151ms] = http, 45.32.69.101, 9000

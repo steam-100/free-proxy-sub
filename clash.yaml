@@ -1,0 +1,254 @@
+# Clash Meta (Mihomo) Config - Free Proxy List
+# Updated: 2026-09-05 18:19 UTC
+# Validated: 19 nodes (2 probes × 3 samples)
+# Gates: <800ms median | <400ms jitter | >=15KB/s
+# Strategy: per-source top 17 from 3 sources
+
+mixed-port: 7890
+allow-lan: false
+mode: rule
+log-level: info
+
+dns:
+  enable: true
+  enhanced-mode: fake-ip
+  fake-ip-filter:
+    - "*.lan"
+    - "*.local"
+    - "localhost.ptlogin2.qq.com"
+  nameserver:
+    - 223.5.5.5
+    - 119.29.29.29
+  fallback:
+    - 1.1.1.1
+    - 8.8.8.8
+  fallback-filter:
+    geoip: true
+    geoip-code: CN
+
+proxies:
+  - name: "SOCKS5-1"
+    type: socks5
+    server: 20.83.154.79
+    port: 7070
+  - name: "HTTP-2"
+    type: http
+    server: 64.112.184.210
+    port: 3128
+  - name: "SOCKS5-3"
+    type: socks5
+    server: 5.161.115.244
+    port: 1080
+  - name: "HTTP-4"
+    type: http
+    server: 199.7.149.96
+    port: 3128
+  - name: "SOCKS5-5"
+    type: socks5
+    server: 67.207.92.87
+    port: 1088
+  - name: "HTTP-6"
+    type: http
+    server: 134.199.192.3
+    port: 3128
+  - name: "HTTP-7"
+    type: http
+    server: 161.35.181.96
+    port: 999
+  - name: "SOCKS5-8"
+    type: socks5
+    server: 50.30.36.17
+    port: 1080
+  - name: "SOCKS5-9"
+    type: socks5
+    server: 103.101.202.75
+    port: 1080
+  - name: "SOCKS5-10"
+    type: socks5
+    server: 103.101.202.27
+    port: 1080
+  - name: "SOCKS5-11"
+    type: socks5
+    server: 103.101.202.147
+    port: 1080
+  - name: "SOCKS5-12"
+    type: socks5
+    server: 172.86.88.139
+    port: 1080
+  - name: "HTTP-13"
+    type: http
+    server: 34.69.61.247
+    port: 80
+  - name: "HTTP-14"
+    type: http
+    server: 107.167.18.122
+    port: 443
+  - name: "SOCKS5-15"
+    type: socks5
+    server: 45.32.160.61
+    port: 1088
+  - name: "HTTP-16"
+    type: http
+    server: 54.215.177.125
+    port: 1001
+  - name: "SOCKS5-17"
+    type: socks5
+    server: 107.181.252.58
+    port: 1081
+  - name: "SOCKS5-18"
+    type: socks5
+    server: 107.167.18.122
+    port: 443
+  - name: "HTTP-19"
+    type: http
+    server: 45.32.69.101
+    port: 9000
+
+proxy-groups:
+  - name: "Proxy"
+    type: select
+    proxies:
+      - "Auto"
+      - "DIRECT"
+      - "SOCKS5-1"
+      - "HTTP-2"
+      - "SOCKS5-3"
+      - "HTTP-4"
+      - "SOCKS5-5"
+      - "HTTP-6"
+      - "HTTP-7"
+      - "SOCKS5-8"
+      - "SOCKS5-9"
+      - "SOCKS5-10"
+      - "SOCKS5-11"
+      - "SOCKS5-12"
+      - "HTTP-13"
+      - "HTTP-14"
+      - "SOCKS5-15"
+      - "HTTP-16"
+      - "SOCKS5-17"
+      - "SOCKS5-18"
+      - "HTTP-19"
+
+  - name: "Auto"
+    type: url-test
+    url: http://www.gstatic.com/generate_204
+    interval: 300
+    tolerance: 100
+    proxies:
+      - "SOCKS5-1"
+      - "HTTP-2"
+      - "SOCKS5-3"
+      - "HTTP-4"
+      - "SOCKS5-5"
+      - "HTTP-6"
+      - "HTTP-7"
+      - "SOCKS5-8"
+      - "SOCKS5-9"
+      - "SOCKS5-10"
+      - "SOCKS5-11"
+      - "SOCKS5-12"
+      - "HTTP-13"
+      - "HTTP-14"
+      - "SOCKS5-15"
+      - "HTTP-16"
+      - "SOCKS5-17"
+      - "SOCKS5-18"
+      - "HTTP-19"
+
+
+rule-providers:
+  reject:
+    type: http
+    behavior: domain
+    url: "https://cdn.jsdelivr.net/gh/Loyalsoldier/clash-rules@release/reject.txt"
+    path: ./ruleset/reject.yaml
+    interval: 86400
+  apple:
+    type: http
+    behavior: domain
+    url: "https://cdn.jsdelivr.net/gh/Loyalsoldier/clash-rules@release/apple.txt"
+    path: ./ruleset/apple.yaml
+    interval: 86400
+  icloud:
+    type: http
+    behavior: domain
+    url: "https://cdn.jsdelivr.net/gh/Loyalsoldier/clash-rules@release/icloud.txt"
+    path: ./ruleset/icloud.yaml
+    interval: 86400
+  google:
+    type: http
+    behavior: domain
+    url: "https://cdn.jsdelivr.net/gh/Loyalsoldier/clash-rules@release/google.txt"
+    path: ./ruleset/google.yaml
+    interval: 86400
+  proxy:
+    type: http
+    behavior: domain
+    url: "https://cdn.jsdelivr.net/gh/Loyalsoldier/clash-rules@release/proxy.txt"
+    path: ./ruleset/proxy.yaml
+    interval: 86400
+  direct:
+    type: http
+    behavior: domain
+    url: "https://cdn.jsdelivr.net/gh/Loyalsoldier/clash-rules@release/direct.txt"
+    path: ./ruleset/direct.yaml
+    interval: 86400
+  private:
+    type: http
+    behavior: domain
+    url: "https://cdn.jsdelivr.net/gh/Loyalsoldier/clash-rules@release/private.txt"
+    path: ./ruleset/private.yaml
+    interval: 86400
+  telegramcidr:
+    type: http
+    behavior: ipcidr
+    url: "https://cdn.jsdelivr.net/gh/Loyalsoldier/clash-rules@release/telegramcidr.txt"
+    path: ./ruleset/telegramcidr.yaml
+    interval: 86400
+  cncidr:
+    type: http
+    behavior: ipcidr
+    url: "https://cdn.jsdelivr.net/gh/Loyalsoldier/clash-rules@release/cncidr.txt"
+    path: ./ruleset/cncidr.yaml
+    interval: 86400
+  applications:
+    type: http
+    behavior: classical
+    url: "https://cdn.jsdelivr.net/gh/Loyalsoldier/clash-rules@release/applications.txt"
+    path: ./ruleset/applications.yaml
+    interval: 86400
+
+rules:
+  # AI services (top priority — domain-explicit)
+  - DOMAIN-SUFFIX,openai.com,Proxy
+  - DOMAIN-SUFFIX,chatgpt.com,Proxy
+  - DOMAIN-SUFFIX,anthropic.com,Proxy
+  - DOMAIN-SUFFIX,claude.ai,Proxy
+
+  # Local apps and private network — direct
+  - RULE-SET,applications,DIRECT
+  - RULE-SET,private,DIRECT
+
+  # Ad / tracker block
+  - RULE-SET,reject,REJECT
+
+  # Apple ecosystem — direct (avoid breaking iCloud / push)
+  - RULE-SET,icloud,DIRECT
+  - RULE-SET,apple,DIRECT
+
+  # Western services — proxy
+  - RULE-SET,google,Proxy
+  - RULE-SET,proxy,Proxy
+
+  # Curated direct domains
+  - RULE-SET,direct,DIRECT
+
+  # IP rules (no-resolve avoids unnecessary DNS lookups)
+  - RULE-SET,telegramcidr,Proxy,no-resolve
+  - RULE-SET,cncidr,DIRECT,no-resolve
+  - GEOIP,LAN,DIRECT,no-resolve
+  - GEOIP,CN,DIRECT,no-resolve
+
+  # Fallback
+  - MATCH,Proxy
