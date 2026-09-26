@@ -1,0 +1,32 @@
+# Free Proxy List for Quantumult X
+# Updated: 2026-09-26 16:35 UTC
+# Validated: 26 nodes (2 probes × 3 samples)
+# Gates: <800ms median | <400ms jitter | >=15KB/s
+# Strategy: per-source top 17 from 3 sources
+
+HTTP-1[28ms] = http, 159.203.61.169, 80
+HTTP-2[30ms] = http, 159.203.61.169, 3128
+HTTP-3[36ms] = http, 209.97.150.167, 3128
+SOCKS5-4[36ms] = socks5, 107.150.41.226, 18080
+HTTP-5[37ms] = http, 198.199.86.11, 3128
+HTTP-6[38ms] = http, 198.199.86.11, 8080
+HTTP-7[42ms] = http, 138.68.60.8, 80
+HTTP-8[42ms] = http, 184.75.221.82, 3118
+HTTP-9[42ms] = http, 138.68.60.8, 3128
+SOCKS5-10[44ms] = socks5, 20.83.154.79, 7070
+HTTP-11[46ms] = http, 134.199.192.3, 3128
+HTTP-12[50ms] = http, 104.168.15.151, 4080
+HTTP-13[50ms] = http, 69.87.216.54, 7989
+HTTP-14[51ms] = http, 107.167.18.122, 443
+SOCKS5-15[51ms] = socks5, 209.50.255.91, 1080
+SOCKS5-16[53ms] = socks5, 38.49.210.79, 40000
+SOCKS5-17[59ms] = socks5, 83.147.217.103, 1080
+SOCKS5-18[60ms] = socks5, 49.51.233.28, 1080
+HTTP-19[62ms] = http, 107.150.41.226, 18080
+SOCKS5-20[71ms] = socks5, 107.167.18.122, 443
+SOCKS5-21[72ms] = socks5, 23.239.30.204, 1088
+SOCKS5-22[96ms] = socks5, 45.61.188.134, 44499
+SOCKS5-23[97ms] = socks5, 166.62.88.163, 45842
+SOCKS5-24[97ms] = socks5, 166.62.53.45, 45842
+SOCKS5-25[102ms] = socks5, 138.2.216.186, 1080
+HTTP-26[132ms] = http, 189.51.168.165, 999
